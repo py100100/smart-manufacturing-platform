@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python hooks/check_claude.py)",
+      "Bash(python -m pytest tests/test_quality_inspection_agent.py -v)",
+      "Bash(python -m pytest tests/test_quality_inspection_agent.py tests/test_production_scheduling_agent.py tests/test_guardrails.py -q)",
+      "Bash(python -m pytest tests/ -q)",
+      "Bash(python -m pytest tests/test_predictive_maintenance_agent.py -v)",
+      "Bash(python -m pytest tests/test_predictive_maintenance_agent.py -q)",
+      "Bash(python -m pytest tests/test_predictive_maintenance_agent.py tests/test_quality_inspection_agent.py tests/test_production_scheduling_agent.py tests/test_guardrails.py -q)",
+      "Bash(python -m pytest tests/test_supply_chain_management_agent.py -v)",
+      "Bash(python -m pytest tests/test_supply_chain_management_agent.py -q)",
+      "Bash(python -m pytest tests/test_supply_chain_management_agent.py tests/test_predictive_maintenance_agent.py tests/test_quality_inspection_agent.py tests/test_production_scheduling_agent.py tests/test_guardrails.py -q)"
+    ]
+  }
+}

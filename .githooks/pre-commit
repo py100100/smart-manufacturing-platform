@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+python hooks/check_claude.py
