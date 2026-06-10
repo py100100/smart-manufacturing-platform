@@ -12,9 +12,56 @@
           </div>
         </div>
         <div class="head-actions">
-          <el-button :icon="Refresh" @click="refresh">刷新</el-button>
-          <el-button type="primary" :icon="DataLine" @click="seedDemo">一键生成演示数据</el-button>
-          <el-button type="danger" plain :icon="Delete" @click="clearAll">清空历史</el-button>
+          <el-button class="head-action-button" :icon="Refresh" @click="refresh">刷新</el-button>
+          <el-button class="head-action-button" :icon="DataLine" @click="seedDemo">一键生成演示数据</el-button>
+          <el-button class="head-action-button head-action-button--danger" :icon="Delete" @click="clearAll">
+            清空历史
+          </el-button>
+        </div>
+      </div>
+
+      <!-- 智能问答入口 -->
+      <div class="panel qa-entry">
+        <div class="qa-entry__inner">
+          <div class="qa-entry__lead">
+            <h3 class="qa-entry__title">智能问答</h3>
+            <p class="qa-entry__desc">向智能体提问，获取生产、质量、设备、供应链或工艺方面的分析建议</p>
+          </div>
+          <div class="qa-entry__form">
+            <el-input
+              v-model="qaText"
+              type="textarea"
+              :autosize="{ minRows: 3, maxRows: 5 }"
+              placeholder="请输入生产、质量、设备、供应链或工艺问题"
+              size="large"
+              clearable
+              @keyup.enter="goAsk"
+            />
+            <el-button type="primary" size="large" :disabled="!qaText.trim()" @click="goAsk">
+              开始分析
+            </el-button>
+          </div>
+          <div class="qa-entry__steps">
+            <div class="qa-step">
+              <span class="qa-step__num">1</span>
+              <span class="qa-step__text">输入工厂业务问题</span>
+            </div>
+            <span class="qa-step__arrow">&rarr;</span>
+            <div class="qa-step">
+              <span class="qa-step__num">2</span>
+              <span class="qa-step__text">系统自动识别适合的智能体</span>
+            </div>
+            <span class="qa-step__arrow">&rarr;</span>
+            <div class="qa-step">
+              <span class="qa-step__num">3</span>
+              <span class="qa-step__text">进入工作台执行分析</span>
+            </div>
+            <span class="qa-step__arrow">&rarr;</span>
+            <div class="qa-step">
+              <span class="qa-step__num">4</span>
+              <span class="qa-step__text">查看结论、依据和后续行动</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -77,6 +124,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { DataLine, Delete, Refresh } from '@element-plus/icons-vue';
 import AppLayout from '../components/AppLayout.vue';
@@ -84,6 +132,8 @@ import { clearHistory } from '../services/historyService';
 import { computeDashboardSummary } from '../services/closureAggregateService';
 import { generateDemoHistory } from '../services/demoDataService';
 
+const router = useRouter();
+const qaText = ref('');
 const tick = ref(0);
 const summary = computed(() => {
   tick.value;
@@ -96,6 +146,12 @@ const metrics = computed(() => [
   { label: '预警总数', value: summary.value.totalAlerts, foot: `严重 ${summary.value.criticalAlerts} / 警告 ${summary.value.warningAlerts}` },
   { label: '待处理事项', value: summary.value.pendingActions + summary.value.pendingWorkOrders, foot: '工单 + 行动项' },
 ]);
+
+function goAsk() {
+  const q = qaText.value.trim();
+  if (!q) return;
+  router.push({ path: '/workspace', query: { q } });
+}
 
 function refresh() {
   tick.value++;
@@ -147,6 +203,43 @@ function usagePercent(count: number) {
   justify-content: flex-end;
 }
 
+.head-actions :deep(.head-action-button) {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgb(15 118 110 / 0.72);
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2563eb 0%, #0f766e 100%);
+  color: #ffffff;
+  font-weight: 750;
+  box-shadow: 0 12px 24px rgb(37 99 235 / 0.14);
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.head-actions :deep(.head-action-button:hover),
+.head-actions :deep(.head-action-button:focus) {
+  border-color: rgb(15 118 110 / 0.9);
+  color: #ffffff;
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgb(37 99 235 / 0.18);
+}
+
+.head-actions :deep(.head-action-button:active) {
+  transform: translateY(0);
+}
+
+.head-actions :deep(.head-action-button--danger) {
+  border-color: rgb(185 28 28 / 0.72);
+  background: linear-gradient(135deg, #dc2626 0%, #b45309 100%);
+  box-shadow: 0 12px 24px rgb(220 38 38 / 0.13);
+}
+
+.head-actions :deep(.head-action-button--danger:hover),
+.head-actions :deep(.head-action-button--danger:focus) {
+  border-color: rgb(185 28 28 / 0.9);
+  box-shadow: 0 16px 28px rgb(220 38 38 / 0.18);
+}
+
 .head-meta {
   display: flex;
   gap: 8px;
@@ -161,6 +254,138 @@ function usagePercent(count: number) {
   background: rgb(255 255 255 / 0.07);
   color: #e2e8f0;
   font-size: 12px;
+}
+
+.qa-entry {
+  padding: 24px 28px;
+}
+
+.qa-entry__inner {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  align-items: start;
+  gap: 24px 36px;
+}
+
+.qa-entry__lead {
+  max-width: 280px;
+}
+
+.qa-entry__title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.qa-entry__desc {
+  margin: 0;
+  font-size: 13px;
+  color: #718096;
+  line-height: 1.6;
+}
+
+.qa-entry__form {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.qa-entry__form :deep(.el-textarea) {
+  flex: 1;
+  min-width: 0;
+}
+
+.qa-entry__form :deep(.el-textarea__inner) {
+  min-height: 96px !important;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.qa-entry__form .el-button {
+  flex-shrink: 0;
+  min-width: 116px;
+  min-height: 96px;
+  font-weight: 700;
+}
+
+.qa-entry__steps {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  padding-top: 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.qa-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qa-step__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.qa-step__text {
+  font-size: 12px;
+  color: #718096;
+  white-space: nowrap;
+}
+
+.qa-step__arrow {
+  color: #c0c8d4;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 980px) {
+  .qa-entry__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .qa-entry__lead {
+    max-width: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .qa-entry {
+    padding: 20px;
+  }
+
+  .qa-entry__form {
+    flex-direction: column;
+  }
+
+  .qa-entry__form .el-button {
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .qa-entry__steps {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .qa-step__arrow {
+    display: none;
+  }
 }
 
 .usage-row {

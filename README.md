@@ -64,7 +64,17 @@ python -m pytest tests/ -q
 - 当 LangChain/Chroma 依赖不可用或初始化失败时，自动回退到 TF-IDF 检索。
 - 对外接口保持不变：智能体仍通过 `KnowledgeService.retrieve()` 获取带来源的证据。
 
-智能体编排仍由自研 `AgentOrchestrator` 负责：自动路由、指定智能体调用、多智能体协同链路与节点反馈聚合。
+智能体编排由自研 `AgentOrchestrator` 负责：自动路由、指定智能体调用、多智能体协同链路、节点反馈聚合和业务答案质量兜底。
+
+## 业务答案合成与质量门
+
+为避免智能体只返回“已接收请求”或“请提供结构化数据”等流程性话术，项目增加了统一的业务答案增强层：
+
+- `app/services/business_answer_service.py`：负责识别业务解释型问题，并按生产、质量、设备、供应链、工艺等领域生成结构化专家答案。
+- `app/services/orchestrator.py`：在单智能体、指定智能体和协同执行后，对顶层 `summary` 进行质量检查。
+- 当 `summary` 过短或包含空洞话术时，Orchestrator 会调用 `BusinessAnswerService` 生成兜底答案，并追加 `answer-synthesis` / `答案综合` 节点。
+- `agent_chain` 中保留各智能体原始执行摘要，方便追溯；顶层 `summary` 用于前端展示高质量业务结论。
+- `require_llm=false` 时走本地专家模板，不调用外部模型；`require_llm=true` 时优先尝试模型生成，失败后回退本地模板。
 
 ## API 接口
 
@@ -121,11 +131,11 @@ curl -X POST http://localhost:8000/api/v1/agents/execute \
 | `execution_mode` | string | `"single"` 单智能体 / `"collaborative"` 多智能体协同 |
 | `detected_scenes` | list[string] | 识别到的业务场景列表 |
 | `agent_name` | string | 执行的智能体名称（协同模式为 `+` 连接） |
-| `summary` | string | 分析摘要 |
+| `summary` | string | 顶层分析摘要；经过业务答案质量门校验，必要时由答案综合层兜底生成 |
 | `decision` | string | 智能体决策 |
 | `evidence` | list[string] | 支撑证据（含 `[knowledge:来源]` 知识库标记） |
 | `next_actions` | list[string] | 建议后续行动 |
-| `node_feedback` | list[object] | 聚合所有智能体的节点式反馈 |
+| `node_feedback` | list[object] | 聚合所有智能体的节点式反馈；业务答案增强时会包含 `answer-synthesis` 节点 |
 | `agent_chain` | list[object] | 执行链路，每步含 `agent_name`、`display_name`、`summary`、`decision`、`evidence`、`node_feedback` |
 | `closure` | object | 业务闭环对象 |
 | `closure.alerts` | list[object] | 预警列表（`alert_id`、`severity`、`alert_type`、`title`） |
@@ -152,7 +162,11 @@ python -m pytest tests/test_process_parameter_optimization_agent.py -q
 python -m pytest tests/test_business_closure.py -q
 python -m pytest tests/test_knowledge_rag.py -q
 python -m pytest tests/test_integration.py -q
+python -m pytest tests/test_business_answer_service.py -q
+python -m pytest tests/test_orchestrator.py::TestSingleAgentEndpointSummaryQuality -q
 ```
+
+最近一次拆分验收结果：Hook 通过；`test_orchestrator.py` 285 passed；五个智能体模块 269 passed；`business_answer_service` 19 passed；闭环、护栏、RAG、集成测试合计 109 passed；前端 `npm run build` 通过。全量一次性运行可能因本地环境超时，可按上面的模块命令拆分验收。
 
 ## 项目结构
 
@@ -160,7 +174,7 @@ python -m pytest tests/test_integration.py -q
 app/
 ├── api/v1/endpoints/    # 接口层（只做入参校验和编排调用）
 ├── agents/              # 五个业务智能体
-├── services/            # 编排、知识/RAG、业务闭环
+├── services/            # 编排、知识/RAG、业务答案合成、业务闭环
 ├── schemas/             # Pydantic 输入/输出模型
 ├── core/                # 配置、日志
 ├── db/                  # 数据库连接

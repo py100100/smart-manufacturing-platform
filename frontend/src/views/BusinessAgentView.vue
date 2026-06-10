@@ -14,7 +14,7 @@
         <el-tag size="large" effect="dark">{{ page.agentLabel }}</el-tag>
       </div>
 
-      <div class="grid-metrics">
+      <div class="grid-metrics business-metrics">
         <div v-for="m in metrics" :key="m.label" class="panel metric-card">
           <div class="metric-label">{{ m.label }}</div>
           <div class="metric-value">{{ m.value }}</div>
@@ -31,7 +31,7 @@
         </div>
       </el-card>
 
-      <AgentResult :result="result" />
+      <AgentResult v-if="result" :result="result" />
     </div>
   </AppLayout>
 </template>
@@ -111,11 +111,76 @@ async function run() {
 }
 
 .page-head {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px;
+  padding: 24px 28px;
+  border-color: #d8e0ea;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 14px 32px rgb(15 23 42 / 0.07);
+}
+
+.page-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(37 99 235 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(37 99 235 / 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.page-head::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  top: 20px;
+  width: 150px;
+  height: 64px;
+  border-top: 1px solid rgb(37 99 235 / 0.16);
+  border-right: 1px solid rgb(37 99 235 / 0.16);
+  pointer-events: none;
+}
+
+.page-head > * {
+  position: relative;
+  z-index: 1;
+}
+
+.page-head .page-title {
+  color: #111827;
+}
+
+.page-head .page-subtitle {
+  color: #667085;
+}
+
+.page-head :deep(.el-tag) {
+  border: none;
+  background: linear-gradient(135deg, #2563eb 0%, #0f766e 100%);
+  box-shadow: 0 10px 20px rgb(37 99 235 / 0.16);
+}
+
+.business-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.business-metrics .metric-card {
+  min-width: 0;
+}
+
+.business-metrics .metric-value {
+  font-size: 26px;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.business-metrics .metric-foot {
+  line-height: 1.45;
 }
 
 .action-row {
@@ -133,11 +198,22 @@ async function run() {
 }
 
 .head-meta span {
-  padding: 5px 9px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 6px;
-  background: rgb(255 255 255 / 0.07);
-  color: #e2e8f0;
-  font-size: 12px;
+  padding: 7px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .page-head {
+    display: grid;
+  }
+
+  .page-head :deep(.el-tag) {
+    justify-self: start;
+  }
 }
 </style>

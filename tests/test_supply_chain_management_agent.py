@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+
 import pytest
 
 from app.agents.supply_chain_management_agent import (
@@ -22,10 +24,13 @@ from app.services.supply_chain_management_service import SupplyChainManagementSe
 # ══════════════════════════════════════════════════════════════════
 
 
-def make_plan(plan_id="PLAN-001", product_id="P-1001", quantity=500, priority="high") -> ProductionPlanItem:
+def make_plan(plan_id="PLAN-001", product_id="P-1001", quantity=500, priority="high",
+              start_date=None, due_date=None) -> ProductionPlanItem:
     return ProductionPlanItem(
         plan_id=plan_id, product_id=product_id, quantity=quantity,
-        start_date="2026-06-10", due_date="2026-06-20", priority=priority,
+        start_date=start_date or _PLAN_START.isoformat(),
+        due_date=due_date or _PLAN_END.isoformat(),
+        priority=priority,
     )
 
 
@@ -48,7 +53,9 @@ def make_inv(material_id="MAT-001", available=500.0, reserved=0.0, safety=200.0,
 
 
 def make_po(po_id="PO-001", material_id="MAT-001", supplier_id="SUP-001",
-            qty=200.0, edd="2026-06-12", status="in_transit", received_qty=0.0) -> PurchaseOrderItem:
+            qty=200.0, edd=None, status="in_transit", received_qty=0.0) -> PurchaseOrderItem:
+    if edd is None:
+        edd = _ON_TIME_EDD
     return PurchaseOrderItem(
         po_id=po_id, material_id=material_id, supplier_id=supplier_id,
         order_quantity=qty, expected_delivery_date=edd, status=status,
@@ -80,6 +87,16 @@ def make_request(**overrides) -> SupplyChainManagementRequest:
     return SupplyChainManagementRequest(**kwargs)
 
 
+# 动态日期，消除测试对固定日期的脆弱依赖。
+# _PLAN_START 始终在 5 天后，_ON_TIME_EDD 与计划开始日相同 →
+# PO 不会因 "today 超过 start_date" 被误判为延期，也不会因
+# "edd > start_date" 被排除出 in_transit_on_time。
+_TODAY = datetime.now().date()
+_PLAN_START = _TODAY + timedelta(days=5)
+_PLAN_END = _PLAN_START + timedelta(days=2)
+_ON_TIME_EDD = _PLAN_START.isoformat()
+_LATE_EDD = (_PLAN_START + timedelta(days=5)).isoformat()
+
 # ══════════════════════════════════════════════════════════════════
 # 场景 1：库存充足 → supply_chain_stable
 # ══════════════════════════════════════════════════════════════════
@@ -103,7 +120,7 @@ class TestSupplyChainStable:
             production_plan=[make_plan(quantity=50)],
             bill_of_materials=[make_bom(qty_per_unit=2.0)],  # need 100
             inventory=[make_inv(available=50.0, safety=100.0)],
-            purchase_orders=[make_po(qty=200.0, edd="2026-06-09")],  # 在途 200，到货日 ≤ 最早开工日
+            purchase_orders=[make_po(qty=200.0, edd=_ON_TIME_EDD)],  # 在途 200，到货日 ≤ 最早开工日
         )
         output = agent.execute(request)
 
@@ -156,7 +173,7 @@ class TestShortageRisk:
             production_plan=[make_plan(quantity=500)],
             bill_of_materials=[make_bom(qty_per_unit=2.0)],  # need 1000
             inventory=[make_inv(available=300.0, safety=200.0)],
-            purchase_orders=[make_po(qty=200.0, edd="2026-06-09")],  # 按期到货
+            purchase_orders=[make_po(qty=200.0, edd=_ON_TIME_EDD)],  # 按期到货
             suppliers=[make_supplier(on_time=0.95, quality=0.98)],
         )
         output = agent.execute(request)
@@ -453,7 +470,7 @@ class TestProjectedAvailableWithPO:
             production_plan=[make_plan(quantity=500)],
             bill_of_materials=[make_bom(qty_per_unit=2.0)],  # need 1000
             inventory=[make_inv(available=300.0, safety=200.0)],
-            purchase_orders=[make_po(qty=1000.0, edd="2026-06-09", status="in_transit")],
+            purchase_orders=[make_po(qty=1000.0, edd=_ON_TIME_EDD, status="in_transit")],
         )
         output = agent.execute(request)
 
@@ -557,7 +574,7 @@ class TestComprehensiveScenarios:
                 make_inv("MAT-003", available=0.0, safety=300.0),
             ],
             purchase_orders=[
-                make_po("PO-001", "MAT-002", "SUP-001", 300.0, "2026-06-12"),
+                make_po("PO-001", "MAT-002", "SUP-001", 300.0, _ON_TIME_EDD),
                 make_po("PO-002", "MAT-003", "SUP-002", 500.0, "2026-01-01", status="delayed"),
             ],
             suppliers=[
@@ -770,7 +787,7 @@ class TestInTransitOnTimeCounting:
             inventory=[make_inv(available=200.0, safety=100.0)],
             purchase_orders=[
                 make_po(po_id="PO-ON-TIME", qty=300.0,
-                        edd="2026-06-09", status="in_transit"),  # ≤ plan_start
+                        edd=_ON_TIME_EDD, status="in_transit"),  # ≤ plan_start
             ],
         )
         output = agent.execute(request)
@@ -792,7 +809,7 @@ class TestInTransitOnTimeCounting:
             inventory=[make_inv(available=200.0, safety=100.0)],
             purchase_orders=[
                 make_po(po_id="PO-LATE", qty=300.0,
-                        edd="2026-06-15", status="in_transit"),  # 晚于最早开工日 06-10
+                        edd=_LATE_EDD, status="in_transit"),  # 晚于最早开工日
             ],
         )
         output = agent.execute(request)

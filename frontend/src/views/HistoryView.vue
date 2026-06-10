@@ -11,7 +11,7 @@
             <span>闭环可回放</span>
           </div>
         </div>
-        <el-button type="danger" plain @click="clearAll">清空历史</el-button>
+        <el-button class="history-clear-button" @click="clearAll">清空历史</el-button>
       </div>
 
       <div class="two-col">
@@ -84,6 +84,31 @@ async function clearAll() {
 
 .detail-result {
   margin-top: 16px;
+}
+
+.history-clear-button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgb(185 28 28 / 0.72);
+  border-radius: 6px;
+  background: linear-gradient(135deg, #dc2626 0%, #b45309 100%);
+  color: #ffffff;
+  font-weight: 750;
+  box-shadow: 0 12px 24px rgb(220 38 38 / 0.13);
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.history-clear-button:hover,
+.history-clear-button:focus {
+  border-color: rgb(185 28 28 / 0.9);
+  color: #ffffff;
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgb(220 38 38 / 0.18);
+}
+
+.history-clear-button:active {
+  transform: translateY(0);
 }
 
 .head-meta {

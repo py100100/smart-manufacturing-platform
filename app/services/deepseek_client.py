@@ -16,6 +16,17 @@ class DeepSeekClient:
         return bool(self.settings.deepseek_api_key)
 
     async def generate(self, prompt: str) -> dict[str, Any]:
+        """默认生成 — 使用企业分析助手 system prompt。"""
+        return await self.generate_with_system_prompt(
+            "你是智能制造平台中的企业级分析助手，"
+            "需要给出结构化、可执行、可追溯的结论。",
+            prompt,
+        )
+
+    async def generate_with_system_prompt(
+        self, system_prompt: str, user_prompt: str
+    ) -> dict[str, Any]:
+        """带自定义 system prompt 的生成 — 用于知识问答等场景。"""
         if not self.is_configured:
             return {
                 "model": None,
@@ -25,14 +36,8 @@ class DeepSeekClient:
         payload = {
             "model": self.settings.deepseek_model,
             "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "你是智能制造平台中的企业级分析助手，"
-                        "需要给出结构化、可执行、可追溯的结论。"
-                    ),
-                },
-                {"role": "user", "content": prompt},
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
             ],
             "temperature": 0.2,
         }
@@ -45,7 +50,9 @@ class DeepSeekClient:
             base_url=self.settings.deepseek_base_url,
             timeout=self.settings.request_timeout_seconds,
         ) as client:
-            response = await client.post("/chat/completions", json=payload, headers=headers)
+            response = await client.post(
+                "/chat/completions", json=payload, headers=headers
+            )
             response.raise_for_status()
             data = response.json()
 

@@ -58,7 +58,7 @@ if (-not (Test-Path -LiteralPath $NodeModules)) {
 
 $RootQuoted = Quote-LiteralPath $Root
 $FrontendQuoted = Quote-LiteralPath $Frontend
-$BackendCommand = "Set-Location -LiteralPath $RootQuoted; python -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+$BackendCommand = "Set-Location -LiteralPath $RootQuoted; python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
 $FrontendCommand = "Set-Location -LiteralPath $FrontendQuoted; npm run dev -- --host 127.0.0.1 --port $FrontendPort --strictPort"
 
 Write-Host "Smart Manufacturing Platform Dev Launcher" -ForegroundColor Cyan
