@@ -21,3 +21,6 @@ logs/
 
 # Temporary archive
 archive/
+
+# Local Claude/Codex tool settings
+.claude/settings.local.json
