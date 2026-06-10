@@ -24,3 +24,6 @@ archive/
 
 # Local Claude/Codex tool settings
 .claude/settings.local.json
+
+# Local interview preparation notes
+LOCAL_INTERVIEW_QA.md

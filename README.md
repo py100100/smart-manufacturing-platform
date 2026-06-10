@@ -171,14 +171,89 @@ python -m pytest tests/test_orchestrator.py::TestSingleAgentEndpointSummaryQuali
 ## 项目结构
 
 ```
-app/
-├── api/v1/endpoints/    # 接口层（只做入参校验和编排调用）
-├── agents/              # 五个业务智能体
-├── services/            # 编排、知识/RAG、业务答案合成、业务闭环
-├── schemas/             # Pydantic 输入/输出模型
-├── core/                # 配置、日志
-├── db/                  # 数据库连接
-hooks/
-tests/
-MEMORY.md                # 跨会话记忆
+smart-manufacturing-platform/
+├── app/                                      # 后端 FastAPI 主工程
+│   ├── main.py                              # FastAPI 应用入口
+│   ├── api/
+│   │   ├── router.py                        # API 路由汇总
+│   │   └── v1/endpoints/
+│   │       ├── agents.py                    # 智能体统一执行、指定智能体调用接口
+│   │       ├── governance.py                # 治理/闭环相关接口
+│   │       └── health.py                    # 健康检查接口
+│   ├── agents/                              # 五个业务智能体及注册中心
+│   │   ├── base.py                          # 智能体基础类与统一输出约束
+│   │   ├── registry.py                      # 智能体注册与查询
+│   │   ├── production_scheduling_agent.py   # 生产调度优化智能体
+│   │   ├── quality_inspection_agent.py      # 质量检测与缺陷分析智能体
+│   │   ├── predictive_maintenance_agent.py  # 设备预测性维护智能体
+│   │   ├── supply_chain_management_agent.py # 供应链协同管理智能体
+│   │   └── process_parameter_optimization_agent.py # 工艺参数优化智能体
+│   ├── services/                            # 业务服务与智能编排层
+│   │   ├── orchestrator.py                  # 自动路由、多智能体协同、答案质量门
+│   │   ├── business_answer_service.py       # 业务答案增强与兜底专家模板
+│   │   ├── knowledge_service.py             # LangChain/Chroma RAG 与 TF-IDF 回退
+│   │   ├── business_closure_service.py      # 预警、工单、报告、行动项闭环聚合
+│   │   ├── deepseek_client.py               # 大模型调用封装，密钥从环境变量读取
+│   │   └── *_service.py                     # 各智能体对应的业务计算服务
+│   ├── schemas/                             # Pydantic 输入/输出模型
+│   │   ├── agent.py                         # 通用智能体请求与响应结构
+│   │   ├── business_closure.py              # 业务闭环对象结构
+│   │   └── *_management.py / *_optimization.py # 各业务域数据模型
+│   ├── models/                              # SQLAlchemy 数据模型
+│   │   └── agent_run.py                     # 智能体运行记录
+│   ├── db/                                  # 数据库连接与会话
+│   │   ├── base.py
+│   │   └── session.py
+│   ├── core/                                # 配置、日志与安全护栏
+│   │   ├── config.py                        # 环境变量配置入口
+│   │   ├── guardrails.py                    # 敏感规则与禁止模式
+│   │   └── logging.py
+│   └── memory/                              # 本地记忆存储封装
+├── frontend/                                # 前端 Vue3 + Element Plus 工程
+│   ├── package.json                         # 前端依赖与脚本
+│   ├── vite.config.ts                       # Vite 构建配置
+│   └── src/
+│       ├── main.ts                          # 前端入口
+│       ├── router.ts                        # 页面路由
+│       ├── App.vue                          # 根组件
+│       ├── api/                             # 后端 API 调用封装
+│       ├── components/
+│       │   ├── AppLayout.vue                # 企业后台整体布局
+│       │   └── AgentResult.vue              # 智能分析结果、路径图、证据展示
+│       ├── services/                        # 登录、历史记录、演示数据等前端服务
+│       ├── types/                           # 前端 TypeScript 类型
+│       └── views/                           # 业务页面
+│           ├── LoginView.vue                # 登录页
+│           ├── RegisterView.vue             # 注册页
+│           ├── DashboardView.vue            # 运营总览
+│           ├── WorkspaceView.vue            # 智能体工作台
+│           ├── BusinessAgentView.vue        # 生产/质量/设备/供应链/工艺业务页
+│           ├── ClosureCenterView.vue        # 业务闭环中心
+│           ├── HistoryView.vue              # 历史记录
+│           └── ProfileView.vue              # 个人中心
+├── tests/                                   # 自动化测试
+│   ├── test_orchestrator.py                 # 编排器、路由、协同、答案质量门测试
+│   ├── test_business_answer_service.py      # 业务答案增强测试
+│   ├── test_*_agent.py                      # 五个智能体单元测试
+│   ├── test_knowledge_rag.py                # RAG/知识检索测试
+│   ├── test_business_closure.py             # 业务闭环测试
+│   ├── test_integration.py                  # 接口集成测试
+│   └── test_guardrails.py                   # 安全护栏测试
+├── docs/                                    # 项目讲解与流程文档
+│   ├── agent_flowcharts.md                  # 5 个智能体 Mermaid 流程图
+│   ├── video_script.md                      # 项目讲解视频逐字稿
+│   └── reports/                             # 项目日报/过程材料
+├── hooks/
+│   └── check_claude.py                      # 提交前安全与规范扫描
+├── README.md                                # 项目总说明与接口说明
+├── START.md                                 # 一键启动、清缓存重启、健康检查
+├── frontend/DEMO_SCRIPT.md                  # 前端演示讲解脚本
+├── frontend/README.md                       # 前端模块说明
+├── AGENTS.md / CLAUDE.md                    # 协作规则与敏感模块指针
+├── MEMORY.md                                # 项目过程记忆与验收记录
+├── .env.example                             # 环境变量示例，真实 .env 不提交
+├── pyproject.toml                           # Python 项目配置
+├── uv.lock                                  # Python 依赖锁定文件
+├── start-dev.bat                            # Windows 一键启动入口
+└── start-dev.ps1                            # 一键启动 PowerShell 实现
 ```
