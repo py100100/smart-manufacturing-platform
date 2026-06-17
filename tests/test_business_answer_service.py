@@ -29,6 +29,11 @@ class TestBusinessDomainDetection:
         )
         assert domains.get("quality_inspection", False)
 
+    def test_simple_quality_nonconformance_domain_detected(self) -> None:
+        from app.services.business_answer_service import _detect_business_domains
+        domains = _detect_business_domains("零件质量不达标")
+        assert domains.get("quality_inspection", False)
+
     def test_predictive_maintenance_domain_detected(self) -> None:
         from app.services.business_answer_service import _detect_business_domains
         domains = _detect_business_domains(
@@ -177,3 +182,26 @@ class TestBusinessAnswerServiceOffline:
                 assert marker not in answer, (
                     f"答案包含禁止短语 '{marker}': {q!r}"
                 )
+
+    @pytest.mark.asyncio
+    async def test_simple_quality_nonconformance_answer_is_actionable(self) -> None:
+        from app.services.business_answer_service import (
+            BusinessAnswerService,
+            validate_summary,
+        )
+
+        svc = BusinessAnswerService(llm_client=None)
+        answer = await svc.generate_answer(
+            "零件质量不达标",
+            ["quality_inspection"],
+            use_llm=False,
+        )
+
+        assert answer is not None
+        for keyword in ["隔离", "复检", "不建议放行", "根因", "后续行动"]:
+            assert keyword in answer
+        assert "SPC 动态控制限" not in answer
+        assert "知识图谱" not in answer
+
+        is_valid, violations = validate_summary(answer)
+        assert is_valid, "\n".join(violations)

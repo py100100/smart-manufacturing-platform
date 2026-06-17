@@ -281,7 +281,16 @@ const METHOD_FLOW_KEYWORDS = [
   '安全速度', '重规划', '全局效率',
   '知识图谱', '实体抽取', '关系抽取', '信息抽取',
   '非结构化', '工艺文档', '维修记录',
-  '根因推理', '故障根因', '三元组', '图谱推理',
+  '三元组', '图谱推理',
+]
+
+/** 用户明确在问方法、流程、模型或技术路线时，才允许展示流程图 */
+const METHOD_INTENT_KEYWORDS = [
+  '如何', '怎么', '怎样', '方法', '方案', '步骤', '流程', '流程图',
+  '路径图', '技术路线', '模型', '算法', '公式', '设计',
+  '知识图谱', '实体抽取', '关系抽取', '图谱推理', '三元组',
+  'AGV', 'AMR', 'ORCA', '机器人', '路径规划',
+  'SPC', 'EWMA', 'CUSUM', 'RUL', '剩余寿命', '自适应阈值', '动态阈值',
 ]
 
 function cleanMarkdownText(text: string): string {
@@ -516,11 +525,21 @@ function formatFormula(text: string): string {
     .trim()
 }
 
-/** 判断是否展示方法流程图 */
-function shouldShowMethodFlow(text: string): boolean {
-  if (!text) return false
+function containsAny(text: string, keywords: string[]): boolean {
   const upperText = text.toUpperCase()
-  return METHOD_FLOW_KEYWORDS.some((kw) => upperText.includes(kw.toUpperCase()))
+  return keywords.some((kw) => upperText.includes(kw.toUpperCase()))
+}
+
+/** 判断是否展示方法流程图 */
+function shouldShowMethodFlow(summary: string, requestText: string): boolean {
+  if (!summary) return false
+
+  // 关键修正：普通异常问题只展示业务答案，不因 summary 里的“根因/维护/图谱”等泛词误触发流程图。
+  const hasMethodIntent = containsAny(requestText, METHOD_INTENT_KEYWORDS)
+  if (!hasMethodIntent) return false
+
+  const combinedText = `${requestText}\n${summary}`
+  return containsAny(combinedText, METHOD_FLOW_KEYWORDS)
 }
 
 const PREDICTIVE_FLOW_STEPS = [
@@ -563,7 +582,7 @@ function isKnowledgeGraphFlow(text: string): boolean {
   return [
     '知识图谱', '实体抽取', '关系抽取', '信息抽取',
     '非结构化', '工艺文档', '维修记录',
-    '根因推理', '故障根因', '三元组', '图谱推理',
+    '三元组', '图谱推理', 'NEO4J',
   ].some((kw) => upperText.includes(kw.toUpperCase()))
 }
 
@@ -573,12 +592,17 @@ function isKnowledgeGraphFlow(text: string): boolean {
 
 const summaryBlocks = computed(() => parseSummary(props.result?.summary ?? ''))
 
-const showMethodFlow = computed(() => shouldShowMethodFlow(props.result?.summary ?? ''))
+const showMethodFlow = computed(() => shouldShowMethodFlow(
+  props.result?.summary ?? '',
+  props.result?.request_text ?? '',
+))
 
 const methodFlowNodes = computed(() => {
   const summary = props.result?.summary ?? ''
-  if (isKnowledgeGraphFlow(summary)) return KNOWLEDGE_GRAPH_FLOW_STEPS
-  if (isRoboticsFlow(summary)) return ROBOTICS_FLOW_STEPS
+  const requestText = props.result?.request_text ?? ''
+  const text = `${requestText}\n${summary}`
+  if (isKnowledgeGraphFlow(text)) return KNOWLEDGE_GRAPH_FLOW_STEPS
+  if (isRoboticsFlow(text)) return ROBOTICS_FLOW_STEPS
   return PREDICTIVE_FLOW_STEPS
 })
 

@@ -119,7 +119,7 @@ BUSINESS_DOMAIN_KEYWORDS: dict[str, list[str]] = {
         "缺陷", "缺陷率", "质检", "尺寸偏差", "粗糙度",
         "裂纹", "气孔", "不良率", "人机料法环", "根因",
         "质量", "良率", "质量分析", "质量缺陷", "批次",
-        "不良品", "不合格", "检验", "检测",
+        "不良品", "不合格", "不达标", "超标", "零件", "检验", "检测",
     ],
     "predictive_maintenance": [
         "设备", "故障", "振动", "温度异常", "电流异常",
@@ -841,13 +841,80 @@ def _generate_production_scheduling_answer() -> str:
     ])
 
 
-def _generate_quality_inspection_answer() -> str:
+def _is_simple_quality_nonconformance(text: str) -> bool:
+    """识别短质量异常问题，如“零件质量不达标”。
+
+    这类问题不是在问通用质量方法论，而是希望得到现场处置判断。
+    """
+    text_lower = text.lower()
+    quality_terms = ["质量", "质检", "检验", "检测", "零件", "产品", "批次"]
+    abnormal_terms = [
+        "不达标", "不合格", "不良", "超标", "异常", "缺陷",
+        "不满足", "ng", "fail", "failed",
+    ]
+    return (
+        any(term in text_lower for term in quality_terms)
+        and any(term in text_lower for term in abnormal_terms)
+    )
+
+
+def _generate_quality_nonconformance_answer(request_text: str) -> str:
+    """面向“零件/产品质量不达标”的直接处置型答案。"""
+    subject = "该批零件"
+    if "产品" in request_text:
+        subject = "该批产品"
+    elif "批次" in request_text:
+        subject = "该批次"
+
+    return "\n".join([
+        f"针对“{request_text}”，我的判断是：不要先把它当成普通咨询处理，"
+        f"应立即按质量异常闭环处置。{subject}在质量不达标原因未确认前，不建议放行，"
+        "应先隔离、复检、判定影响范围，再做根因追溯和纠正措施。",
+        "",
+        "【直接结论】",
+        "1. 先判定为“质量异常待确认”，状态建议设为 pending_review / hold。",
+        "2. 如果不达标项影响安全、装配、关键尺寸、硬度、强度或功能性能，应按严重质量风险处理，暂停流转或出货。",
+        "3. 如果只是外观轻微异常，也不能直接放行，需要按检验标准、AQL 或让步接收流程进行复核。",
+        "",
+        "【现场处置步骤】",
+        "1. 隔离：立即冻结该批零件、同批次在制品和已入库成品，避免不合格品继续流入下一工序或客户侧。",
+        "2. 复检：用同一检具和备用检具各复测一次，确认是否为真实不达标，而不是检具偏差、操作误判或抽样误差。",
+        "3. 定级：按缺陷影响分为致命、严重、一般三类。关键尺寸超差、硬度不足、裂纹、强度不达标应优先升为严重风险。",
+        "4. 扩围：追溯同一工单、同一设备、同一班次、同一材料批号、同一刀具或模具寿命周期内的全部零件。",
+        "5. 处置：对已确认不合格的零件执行返工、返修、报废、让步接收或供应商退货，不允许只用口头说明替代质量判定。",
+        "",
+        "【根因分析重点】",
+        "- 人：检查是否有新员工、换班、漏检、检验方法理解不一致、操作参数被人工改动。",
+        "- 机：检查设备精度、夹具定位、刀具或模具磨损、主轴振动、温度漂移、检具校准有效期。",
+        "- 料：核对材料批号、供应商质保书、硬度/成分/热处理状态，排除来料波动。",
+        "- 法：核对工艺路线、SOP、检验规范、抽样方案和控制计划，确认是否有临时变更未同步。",
+        "- 环：检查温湿度、清洁度、冷却液状态、测量环境和现场搬运磕碰等因素。",
+        "",
+        "【建议采集的数据】",
+        "- 不达标项目名称、标准上下限、实测值、检验设备编号和检验人员。",
+        "- 批次号、工单号、产品型号、生产时间、班次、设备编号、工序名称。",
+        "- 同批次良品/不良品数量、不良率、缺陷照片、复检记录和历史同类异常记录。",
+        "- 设备点检记录、刀具/模具更换记录、材料批号、供应商来料检验记录。",
+        "",
+        "【后续行动建议】",
+        "1. 质量工程师在 2 小时内完成复检和风险定级，输出是否停线、是否全检、是否通知客户的判断。",
+        "2. 生产主管同步冻结相关工单，避免继续生产扩大损失。",
+        "3. 工艺和设备人员联合复盘最近一次换料、换型、换刀、设备报警和参数调整记录。",
+        "4. 若同类问题连续出现，应启动 8D 报告，明确临时遏制、根因验证、永久纠正和防再发措施。",
+        "5. 改善完成后至少跟踪 3 个批次的复发率，确认不良率回到质量目标以内再关闭问题。",
+    ])
+
+
+def _generate_quality_inspection_answer(request_text: str = "") -> str:
     """质量检测与缺陷分析 — 专家级回答模板。
 
     覆盖：缺陷率上升分析 / 尺寸偏差/表面粗糙度/裂纹/气孔原因定位 /
     人机料法环根因分析 / 历史缺陷库辅助判断 / 改进与预防方案。
     内置 8D 问题解决法、鱼骨图分析路径、SPC 控制图、FMEA 等工具。
     """
+    if request_text and _is_simple_quality_nonconformance(request_text):
+        return _generate_quality_nonconformance_answer(request_text)
+
     return "\n".join([
         "针对您的质量缺陷分析问题，以下是一个系统性的根因分析与改进方案，"
         "采用「人机料法环（4M1E）+ 8D 问题解决法 + SPC 统计过程控制」框架。",
@@ -1715,7 +1782,7 @@ def _generate_business_answer(
         if domain_name == "production_scheduling":
             return _generate_production_scheduling_answer()
         elif domain_name == "quality_inspection":
-            return _generate_quality_inspection_answer()
+            return _generate_quality_inspection_answer(request_text)
         elif domain_name == "predictive_maintenance":
             return _generate_predictive_maintenance_business_answer()
         elif domain_name == "supply_chain_management":
@@ -1741,7 +1808,7 @@ def _generate_business_answer(
         if best == "production_scheduling":
             return _generate_production_scheduling_answer()
         elif best == "quality_inspection":
-            return _generate_quality_inspection_answer()
+            return _generate_quality_inspection_answer(request_text)
         elif best == "predictive_maintenance":
             return _generate_predictive_maintenance_business_answer()
         elif best == "supply_chain_management":

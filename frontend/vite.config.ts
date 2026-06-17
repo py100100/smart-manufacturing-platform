@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 
 const rootDir = fileURLToPath(new URL('.', import.meta.url));
+const backendUrl = process.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
 
 export default defineConfig({
   plugins: [vue()],
@@ -18,7 +19,7 @@ export default defineConfig({
     host: '127.0.0.1',
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: backendUrl,
         changeOrigin: true,
       },
     },

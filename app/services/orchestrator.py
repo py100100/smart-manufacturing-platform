@@ -44,7 +44,10 @@ logger = get_logger(__name__)
 
 ROUTING_RULES: dict[str, list[str]] = {
     "production_scheduling": ["排产", "调度", "工单", "产能", "交期", "瓶颈"],
-    "quality_inspection": ["质量", "缺陷", "不良", "质检", "良率", "根因"],
+    "quality_inspection": [
+        "质量", "缺陷", "不良", "质检", "良率", "根因",
+        "不合格", "不达标", "超标", "零件", "检验", "检测",
+    ],
     "predictive_maintenance": ["设备", "故障", "停机", "维护", "振动", "传感器"],
     "supply_chain_management": ["供应链", "采购", "库存", "交付", "缺料", "BOM", "物料"],
     "process_parameter_optimization": ["工艺", "参数", "温度", "压力", "优化", "良品率"],

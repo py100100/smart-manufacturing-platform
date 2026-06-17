@@ -109,6 +109,12 @@ class TestSceneDetection:
         assert "quality_inspection" in scenes
         assert len(scenes) >= 1
 
+    def test_short_nonconformance_routes_to_quality(self) -> None:
+        from app.services.orchestrator import AgentOrchestrator
+        orch = AgentOrchestrator()
+        scenes = orch.detect_scenes("零件不达标")
+        assert scenes == ["quality_inspection"]
+
     def test_multi_scene_detected(self) -> None:
         from app.services.orchestrator import AgentOrchestrator
         orch = AgentOrchestrator()

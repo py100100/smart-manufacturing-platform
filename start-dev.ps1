@@ -44,9 +44,10 @@ $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Frontend = Join-Path $Root "frontend"
 $FrontendPackage = Join-Path $Frontend "package.json"
 $NodeModules = Join-Path $Frontend "node_modules"
+$BackendPort = Get-AvailablePort -Candidates @(8000, 8001, 8002, 8003, 8004, 8005)
 $FrontendPort = Get-AvailablePort -Candidates @(3000, 3001, 3002, 3003, 3004, 3005)
 $FrontendUrl = "http://127.0.0.1:$FrontendPort"
-$BackendUrl = "http://127.0.0.1:8000"
+$BackendUrl = "http://127.0.0.1:$BackendPort"
 
 if (-not (Test-Path -LiteralPath $FrontendPackage)) {
     throw "frontend/package.json was not found. Run this script from the project root."
@@ -58,8 +59,8 @@ if (-not (Test-Path -LiteralPath $NodeModules)) {
 
 $RootQuoted = Quote-LiteralPath $Root
 $FrontendQuoted = Quote-LiteralPath $Frontend
-$BackendCommand = "Set-Location -LiteralPath $RootQuoted; python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
-$FrontendCommand = "Set-Location -LiteralPath $FrontendQuoted; npm run dev -- --host 127.0.0.1 --port $FrontendPort --strictPort"
+$BackendCommand = "Set-Location -LiteralPath $RootQuoted; python -m uvicorn app.main:app --host 127.0.0.1 --port $BackendPort --reload"
+$FrontendCommand = "Set-Location -LiteralPath $FrontendQuoted; `$env:VITE_BACKEND_URL='$BackendUrl'; npm run dev -- --host 127.0.0.1 --port $FrontendPort --strictPort"
 
 Write-Host "Smart Manufacturing Platform Dev Launcher" -ForegroundColor Cyan
 Write-Host "Backend: $BackendUrl"
