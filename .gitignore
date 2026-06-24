@@ -18,6 +18,7 @@ logs/
 # Local IDE / environment
 .idea/
 .env
+.env.docker
 
 # Temporary archive
 archive/

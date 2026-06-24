@@ -55,3 +55,32 @@ http://127.0.0.1:8000/api/v1/health
 - `app_name` / `version`：应用名称和版本信息。
 
 本地 MySQL 配置需要写在 `.env` 文件中，不要把数据库账号、密码硬编码到源码里。
+
+## Docker 启动
+
+如果需要用 Docker Desktop 启动整套项目，可在项目根目录执行：
+
+```powershell
+Copy-Item .env.docker.example .env.docker
+docker compose --env-file .env.docker up --build -d
+```
+
+默认地址：
+
+- 前端：`http://127.0.0.1:3001`
+- 后端：`http://127.0.0.1:8000`
+- 健康检查：`http://127.0.0.1:8000/api/v1/health`
+
+Docker 版 MySQL 默认只在容器网络内使用，不占用宿主机 3306。
+
+## MCP 可选扩展
+
+MCP 工具接入默认关闭：
+
+```text
+MCP_ENABLED=false
+```
+
+需要对接外部 MES、ERP、知识库或设备状态工具时，再在 `.env` 或 `.env.docker`
+中配置 `MCP_SERVER_URL`、`MCP_TOOL_NAME`、`MCP_AUTH_TOKEN` 等变量。MCP 调用结果会以
+`node_feedback` 和 `evidence` 的形式返回，失败时不会阻断主智能体流程。

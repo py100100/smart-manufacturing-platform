@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-v4-flash"
 
+    mcp_enabled: bool = False
+    mcp_server_url: str = ""
+    mcp_tool_name: str = ""
+    mcp_auth_token: str = Field(default="", alias="MCP_AUTH_TOKEN")
+    mcp_timeout_seconds: int = 5
+
     mysql_host: str = "127.0.0.1"
     mysql_port: int = 3306
     mysql_user: str = "root"

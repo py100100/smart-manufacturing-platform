@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -37,6 +38,7 @@ from app.services.business_answer_service import (
 )
 from app.services.deepseek_client import DeepSeekClient
 from app.services.knowledge_service import KnowledgeService
+from app.services.mcp_gateway import MCPGateway, MCPGatewayResult
 
 logger = get_logger(__name__)
 
@@ -106,15 +108,46 @@ class AgentOrchestrator:
         # resp.agent_chain 包含 3 个 AgentStep
     """
 
-    def __init__(self, llm_client: Any = None) -> None:
+    def __init__(
+        self,
+        llm_client: Any = None,
+        mcp_gateway: MCPGateway | None = None,
+    ) -> None:
         self.registry = AgentRegistry()
         self.settings = get_settings()
         self.memory = MemoryStore(self.settings.memory_file)
         self.knowledge = KnowledgeService()
         self._llm = llm_client if llm_client is not None else DeepSeekClient()
+        self._mcp_gateway = (
+            mcp_gateway if mcp_gateway is not None else MCPGateway(self.settings)
+        )
         self._answer_service = BusinessAnswerService(
             llm_client=self._llm, registry=self.registry
         )
+
+    async def _prepare_mcp_request(
+        self,
+        request: AgentTaskRequest,
+    ) -> tuple[AgentTaskRequest, MCPGatewayResult]:
+        mcp_result = await self._mcp_gateway.enrich_request(
+            request.request_text,
+            request.context,
+        )
+        if not mcp_result.context:
+            return request, mcp_result
+
+        merged_context = {**request.context, **mcp_result.context}
+        return request.model_copy(update={"context": merged_context}), mcp_result
+
+    @staticmethod
+    def _append_mcp_result(
+        response: OrchestrationResponse,
+        mcp_result: MCPGatewayResult,
+    ) -> None:
+        if mcp_result.evidence:
+            response.evidence.extend(mcp_result.evidence)
+        if mcp_result.node_feedback:
+            response.node_feedback.extend(mcp_result.node_feedback)
 
     # ── 知识型问题答案生成 ─────────────────────────────────
 
@@ -921,6 +954,7 @@ class AgentOrchestrator:
         - 答案注入 summary，node_feedback 增加"答案综合"节点
         """
         trace_id = uuid4().hex
+        request, mcp_result = await self._prepare_mcp_request(request)
         # 使用更宽松的业务解释型判断替代原有的知识关键词判断
         # _is_business_explanation_question 只要命中"解释型问法 + 业务领域"即触发
         is_knowledge = _is_business_explanation_question(
@@ -1031,6 +1065,7 @@ class AgentOrchestrator:
             if is_knowledge:
                 await _inject_knowledge_answer(response, [request.agent_name])
             await _ensure_quality_summary(response, [request.agent_name])
+            self._append_mcp_result(response, mcp_result)
             return response
 
         # 自动场景检测
@@ -1071,6 +1106,7 @@ class AgentOrchestrator:
             if is_knowledge:
                 await _inject_knowledge_answer(response, [agent_name])
             await _ensure_quality_summary(response, [agent_name])
+            self._append_mcp_result(response, mcp_result)
             return response
 
         # 多智能体协同
@@ -1080,4 +1116,5 @@ class AgentOrchestrator:
         if is_knowledge:
             await _inject_knowledge_answer(collab_response, chain)
         await _ensure_quality_summary(collab_response, chain)
+        self._append_mcp_result(collab_response, mcp_result)
         return collab_response

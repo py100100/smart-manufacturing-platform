@@ -10,6 +10,39 @@
 .\start-dev.bat
 ```
 
+## Docker 部署
+
+项目已提供 Docker 化部署入口，适合本地演示、答辩验收和轻量部署。
+
+```powershell
+Copy-Item .env.docker.example .env.docker
+docker compose --env-file .env.docker up --build -d
+```
+
+默认访问地址：
+
+- 前端：`http://127.0.0.1:3001`
+- 后端 API：`http://127.0.0.1:8000`
+- 健康检查：`http://127.0.0.1:8000/api/v1/health`
+- API 文档：`http://127.0.0.1:8000/docs`
+
+详细说明见 `DOCKER.md`。Docker 内置 MySQL 容器，默认不暴露宿主机 3306，
+避免与本机 MySQL 冲突。
+
+## MCP 可选扩展
+
+项目已预留 MCP 工具接入层，定位为企业系统集成能力，不作为当前核心链路强依赖。
+默认 `MCP_ENABLED=false`，不会影响现有 Agentic RAG、多智能体编排和 Docker 演示。
+
+启用后，`MCPGateway` 会在编排前调用配置的 MCP JSON-RPC 工具，将工具返回内容追加到：
+
+- `evidence`
+- `node_feedback`
+- 智能体执行上下文 `context`
+
+外部 MCP 调用失败时只生成失败节点反馈，不阻断主智能体响应。详细设计见
+`docs/mcp_integration.md`。
+
 脚本会分别打开后端与前端服务窗口。前端默认使用 `http://127.0.0.1:3000`；如果 3000 端口已被占用，脚本会自动切换到 3001-3005 中的可用端口。浏览器访问启动窗口中打印的 `Frontend` 地址即可。
 
 手动启动与验收命令：
