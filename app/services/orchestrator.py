@@ -37,6 +37,7 @@ from app.services.business_answer_service import (
     validate_summary,
 )
 from app.services.deepseek_client import DeepSeekClient
+from app.services.knowledge_graph_service import KnowledgeGraphService
 from app.services.knowledge_service import KnowledgeService
 from app.services.mcp_gateway import MCPGateway, MCPGatewayResult
 
@@ -117,6 +118,7 @@ class AgentOrchestrator:
         self.settings = get_settings()
         self.memory = MemoryStore(self.settings.memory_file)
         self.knowledge = KnowledgeService()
+        self.graph = KnowledgeGraphService(self.settings)
         self._llm = llm_client if llm_client is not None else DeepSeekClient()
         self._mcp_gateway = (
             mcp_gateway if mcp_gateway is not None else MCPGateway(self.settings)
@@ -240,6 +242,10 @@ class AgentOrchestrator:
             for r in results
         ]
 
+    def _retrieve_graph_evidence(self, request_text: str) -> list[str]:
+        """Retrieve Neo4j-backed graph evidence, fail-soft when disabled."""
+        return self.graph.search_evidence(request_text, limit=5)
+
     def _store_case(
         self,
         request_text: str,
@@ -279,7 +285,8 @@ class AgentOrchestrator:
         knowledge_evidence = self._retrieve_knowledge_evidence(
             request.request_text
         )
-        combined_evidence = [*result.evidence, *knowledge_evidence]
+        graph_evidence = self._retrieve_graph_evidence(request.request_text)
+        combined_evidence = [*result.evidence, *knowledge_evidence, *graph_evidence]
 
         self.memory.append(
             title=f"{agent.display_name} | {trace_id}",
@@ -348,6 +355,8 @@ class AgentOrchestrator:
         knowledge_evidence = self._retrieve_knowledge_evidence(
             request.request_text
         )
+        graph_evidence = self._retrieve_graph_evidence(request.request_text)
+        retrieval_evidence = [*knowledge_evidence, *graph_evidence]
 
         # 上下文传递：前一个 agent 的产出注入下一个 agent 的 context
         accumulated_context: dict[str, str] = dict(request.context)
@@ -372,7 +381,7 @@ class AgentOrchestrator:
                 node.node_id = f"{agent_name}/{node.node_id}"
 
             # 注入知识到每个 step 的 evidence
-            step_evidence = [*result.evidence, *knowledge_evidence]
+            step_evidence = [*result.evidence, *retrieval_evidence]
 
             step = AgentStep(
                 agent_name=agent_name,
@@ -389,7 +398,7 @@ class AgentOrchestrator:
             all_evidence.extend(
                 f"[{meta.display_name}] {e}" for e in result.evidence
             )
-            all_evidence.extend(knowledge_evidence)
+            all_evidence.extend(retrieval_evidence)
             all_next_actions.extend(result.next_actions)
             summaries.append(f"[{meta.display_name}] {result.summary}")
             decisions.append(result.decision)

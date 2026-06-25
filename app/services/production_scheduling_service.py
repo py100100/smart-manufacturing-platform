@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import date
-
 from app.schemas.production_scheduling import (
     BottleneckInfo,
     EquipmentInput,
@@ -187,9 +185,7 @@ class ProductionSchedulingService:
             working_days = constraints.working_days
         else:
             due_dates = [o.due_date for o in orders]
-            working_days = max(1, (max(due_dates) - date.today()).days)
-            if working_days < 1:
-                working_days = 1
+            working_days = max(5, (max(due_dates) - min(due_dates)).days)
 
         # 加班系数：allow_overtime 时扩展 20% 产能
         overtime_multiplier = 1.2 if constraints.allow_overtime else 1.0

@@ -1,6 +1,34 @@
 <template>
   <AppLayout>
     <div class="dashboard">
+      <div class="panel mvp-strip">
+        <div class="mvp-strip__main">
+          <div class="mvp-strip__title-row">
+            <h3>MVP 演示状态</h3>
+            <el-tag :type="mvpStatusType">{{ mvpManifest?.status ?? 'loading' }}</el-tag>
+          </div>
+          <div class="mvp-health-grid">
+            <div v-for="item in healthItems" :key="item.label" class="mvp-health-card">
+              <span class="mvp-health-card__label">{{ item.label }}</span>
+              <strong :class="{ 'is-ready': item.ready, 'is-down': !item.ready }">
+                {{ item.ready ? 'Ready' : 'Check' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+        <div class="mvp-strip__scenarios">
+          <button
+            v-for="item in scenarios.slice(0, 5)"
+            :key="item.label"
+            type="button"
+            class="mvp-scenario-button"
+            @click="useScenario(item.text)"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+      </div>
+
       <div class="panel page-head">
         <div>
           <h1 class="page-title">运营总览</h1>
@@ -123,21 +151,44 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { DataLine, Delete, Refresh } from '@element-plus/icons-vue';
 import AppLayout from '../components/AppLayout.vue';
 import { clearHistory } from '../services/historyService';
 import { computeDashboardSummary } from '../services/closureAggregateService';
-import { generateDemoHistory } from '../services/demoDataService';
+import { generateDemoHistory, getDemoScenarios } from '../services/demoDataService';
+import { fetchMvpManifest, type MvpManifest } from '../api/mvpApi';
 
 const router = useRouter();
 const qaText = ref('');
 const tick = ref(0);
+const mvpManifest = ref<MvpManifest | null>(null);
 const summary = computed(() => {
   tick.value;
   return computeDashboardSummary();
+});
+
+const mvpStatusType = computed(() => (mvpManifest.value?.status === 'ready' ? 'success' : 'warning'));
+
+const healthItems = computed(() => {
+  const health = mvpManifest.value?.health;
+  return [
+    { label: 'MySQL', ready: Boolean(health?.database_ready) },
+    { label: 'DeepSeek', ready: Boolean(health?.model_ready) },
+    { label: 'Neo4j', ready: Boolean(health?.graph_ready) },
+  ];
+});
+
+const scenarios = computed(() => {
+  if (mvpManifest.value?.scenarios?.length) {
+    return mvpManifest.value.scenarios.map((item) => ({
+      label: item.title,
+      text: item.request_text,
+    }));
+  }
+  return getDemoScenarios();
 });
 
 const metrics = computed(() => [
@@ -152,6 +203,19 @@ function goAsk() {
   if (!q) return;
   router.push({ path: '/workspace', query: { q } });
 }
+
+function useScenario(text: string) {
+  qaText.value = text;
+  router.push({ path: '/workspace', query: { q: text } });
+}
+
+onMounted(async () => {
+  try {
+    mvpManifest.value = await fetchMvpManifest();
+  } catch {
+    mvpManifest.value = null;
+  }
+});
 
 function refresh() {
   tick.value++;
@@ -256,6 +320,89 @@ function usagePercent(count: number) {
   font-size: 12px;
 }
 
+.mvp-strip {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 18px;
+  padding: 18px 22px;
+  align-items: center;
+}
+
+.mvp-strip__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mvp-strip__title-row h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #172033;
+}
+
+.mvp-health-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mvp-health-card {
+  min-height: 64px;
+  padding: 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.mvp-health-card__label {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.mvp-health-card strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 18px;
+}
+
+.mvp-health-card strong.is-ready {
+  color: #047857;
+}
+
+.mvp-health-card strong.is-down {
+  color: #b45309;
+}
+
+.mvp-strip__scenarios {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mvp-scenario-button {
+  min-height: 64px;
+  padding: 10px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.mvp-scenario-button:hover,
+.mvp-scenario-button:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 10px 20px rgb(37 99 235 / 0.1);
+  transform: translateY(-1px);
+}
+
 .qa-entry {
   padding: 24px 28px;
 }
@@ -355,6 +502,14 @@ function usagePercent(count: number) {
 }
 
 @media (max-width: 980px) {
+  .mvp-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .mvp-strip__scenarios {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .qa-entry__inner {
     grid-template-columns: 1fr;
   }
@@ -365,6 +520,11 @@ function usagePercent(count: number) {
 }
 
 @media (max-width: 720px) {
+  .mvp-health-grid,
+  .mvp-strip__scenarios {
+    grid-template-columns: 1fr;
+  }
+
   .qa-entry {
     padding: 20px;
   }

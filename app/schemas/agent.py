@@ -92,3 +92,4 @@ class HealthResponse(BaseModel):
     version: str
     database_ready: bool
     model_ready: bool
+    graph_ready: bool = False
