@@ -71,7 +71,7 @@ async function clearAll() {
 <style scoped>
 .history-page {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .page-head {
@@ -79,7 +79,7 @@ async function clearAll() {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px;
+  padding: 18px 20px;
 }
 
 .detail-result {
@@ -87,28 +87,19 @@ async function clearAll() {
 }
 
 .history-clear-button {
-  min-height: 40px;
-  padding: 0 16px;
-  border: 1px solid rgb(185 28 28 / 0.72);
-  border-radius: 6px;
-  background: linear-gradient(135deg, #dc2626 0%, #b45309 100%);
-  color: #ffffff;
-  font-weight: 750;
-  box-shadow: 0 12px 24px rgb(220 38 38 / 0.13);
-  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  min-height: 36px;
+  padding: 0 14px;
+  border-color: #f3b6ad;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #b42318;
+  font-weight: 650;
 }
 
 .history-clear-button:hover,
 .history-clear-button:focus {
-  border-color: rgb(185 28 28 / 0.9);
-  color: #ffffff;
-  filter: brightness(1.04);
-  transform: translateY(-1px);
-  box-shadow: 0 16px 28px rgb(220 38 38 / 0.18);
-}
-
-.history-clear-button:active {
-  transform: translateY(0);
+  border-color: #e58b7f;
+  color: #8f1f14;
 }
 
 .head-meta {
@@ -120,10 +111,10 @@ async function clearAll() {
 
 .head-meta span {
   padding: 5px 9px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 6px;
-  background: rgb(255 255 255 / 0.07);
-  color: #e2e8f0;
+  border: 1px solid #d9e0ea;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #5b6678;
   font-size: 12px;
 }
 </style>

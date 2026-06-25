@@ -19,6 +19,13 @@ export interface NodeFeedback {
   completed_at?: string;
 }
 
+export interface TokenUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  request_count: number;
+}
+
 export interface AgentStep {
   agent_name: string;
   display_name: string;
@@ -93,6 +100,7 @@ export interface AgentExecutionResponse {
   next_actions: string[];
   agent_chain: AgentStep[];
   node_feedback: NodeFeedback[];
+  token_usage?: TokenUsage;
   closure: Closure;
 }
 

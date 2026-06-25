@@ -27,6 +27,7 @@ from app.schemas.agent import (
     NodeFeedback,
     NodeStatus,
     OrchestrationResponse,
+    TokenUsage,
 )
 from app.services.business_answer_service import (
     BusinessAnswerService,
@@ -126,6 +127,25 @@ class AgentOrchestrator:
         self._answer_service = BusinessAnswerService(
             llm_client=self._llm, registry=self.registry
         )
+
+    def _reset_token_usage(self) -> None:
+        reset = getattr(self._llm, "reset_token_usage", None)
+        if callable(reset):
+            reset()
+
+    def _current_token_usage(self) -> TokenUsage:
+        usage = getattr(self._llm, "token_usage", None)
+        if isinstance(usage, TokenUsage):
+            return usage
+        if isinstance(usage, dict):
+            return TokenUsage(**usage)
+        return TokenUsage()
+
+    def _finalize_usage(
+        self, response: OrchestrationResponse
+    ) -> OrchestrationResponse:
+        response.token_usage = self._current_token_usage()
+        return response
 
     async def _prepare_mcp_request(
         self,
@@ -963,6 +983,7 @@ class AgentOrchestrator:
         - 答案注入 summary，node_feedback 增加"答案综合"节点
         """
         trace_id = uuid4().hex
+        self._reset_token_usage()
         request, mcp_result = await self._prepare_mcp_request(request)
         # 使用更宽松的业务解释型判断替代原有的知识关键词判断
         # _is_business_explanation_question 只要命中"解释型问法 + 业务领域"即触发
@@ -1075,7 +1096,7 @@ class AgentOrchestrator:
                 await _inject_knowledge_answer(response, [request.agent_name])
             await _ensure_quality_summary(response, [request.agent_name])
             self._append_mcp_result(response, mcp_result)
-            return response
+            return self._finalize_usage(response)
 
         # 自动场景检测
         scenes = self.detect_scenes(request.request_text)
@@ -1116,7 +1137,7 @@ class AgentOrchestrator:
                 await _inject_knowledge_answer(response, [agent_name])
             await _ensure_quality_summary(response, [agent_name])
             self._append_mcp_result(response, mcp_result)
-            return response
+            return self._finalize_usage(response)
 
         # 多智能体协同
         collab_response = await self._execute_collaborative(
@@ -1126,4 +1147,4 @@ class AgentOrchestrator:
             await _inject_knowledge_answer(collab_response, chain)
         await _ensure_quality_summary(collab_response, chain)
         self._append_mcp_result(collab_response, mcp_result)
-        return collab_response
+        return self._finalize_usage(collab_response)

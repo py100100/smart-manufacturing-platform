@@ -57,11 +57,11 @@ const historyCount = computed(() => getHistory().length);
 <style scoped>
 .profile-page {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .page-head {
-  padding: 22px 24px;
+  padding: 18px 20px;
 }
 
 .local-grid {
@@ -77,10 +77,10 @@ const historyCount = computed(() => getHistory().length);
 
 .head-meta span {
   padding: 5px 9px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 6px;
-  background: rgb(255 255 255 / 0.07);
-  color: #e2e8f0;
+  border: 1px solid #d9e0ea;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #5b6678;
   font-size: 12px;
 }
 </style>

@@ -249,7 +249,7 @@ function usagePercent(count: number) {
 <style scoped>
 .dashboard {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .page-head {
@@ -257,7 +257,7 @@ function usagePercent(count: number) {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px;
+  padding: 18px 20px;
 }
 
 .head-actions {
@@ -268,40 +268,24 @@ function usagePercent(count: number) {
 }
 
 .head-actions :deep(.head-action-button) {
-  min-height: 40px;
-  padding: 0 16px;
-  border: 1px solid rgb(15 118 110 / 0.72);
-  border-radius: 6px;
-  background: linear-gradient(135deg, #2563eb 0%, #0f766e 100%);
-  color: #ffffff;
-  font-weight: 750;
-  box-shadow: 0 12px 24px rgb(37 99 235 / 0.14);
-  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 5px;
+  font-weight: 650;
 }
 
 .head-actions :deep(.head-action-button:hover),
 .head-actions :deep(.head-action-button:focus) {
-  border-color: rgb(15 118 110 / 0.9);
-  color: #ffffff;
-  filter: brightness(1.04);
-  transform: translateY(-1px);
-  box-shadow: 0 16px 28px rgb(37 99 235 / 0.18);
-}
-
-.head-actions :deep(.head-action-button:active) {
-  transform: translateY(0);
+  color: #1f4e8c;
 }
 
 .head-actions :deep(.head-action-button--danger) {
-  border-color: rgb(185 28 28 / 0.72);
-  background: linear-gradient(135deg, #dc2626 0%, #b45309 100%);
-  box-shadow: 0 12px 24px rgb(220 38 38 / 0.13);
+  color: #b42318;
 }
 
 .head-actions :deep(.head-action-button--danger:hover),
 .head-actions :deep(.head-action-button--danger:focus) {
-  border-color: rgb(185 28 28 / 0.9);
-  box-shadow: 0 16px 28px rgb(220 38 38 / 0.18);
+  color: #8f1f14;
 }
 
 .head-meta {
@@ -312,19 +296,19 @@ function usagePercent(count: number) {
 }
 
 .head-meta span {
-  padding: 5px 9px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 6px;
-  background: rgb(255 255 255 / 0.07);
-  color: #e2e8f0;
+  padding: 4px 8px;
+  border: 1px solid #d9e0ea;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #5b6678;
   font-size: 12px;
 }
 
 .mvp-strip {
   display: grid;
   grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
-  gap: 18px;
-  padding: 18px 22px;
+  gap: 16px;
+  padding: 16px;
   align-items: center;
 }
 
@@ -348,10 +332,10 @@ function usagePercent(count: number) {
 }
 
 .mvp-health-card {
-  min-height: 64px;
-  padding: 12px;
+  min-height: 58px;
+  padding: 10px;
   border: 1px solid #d8e0ea;
-  border-radius: 8px;
+  border-radius: 5px;
   background: #f8fafc;
 }
 
@@ -363,8 +347,8 @@ function usagePercent(count: number) {
 
 .mvp-health-card strong {
   display: block;
-  margin-top: 7px;
-  font-size: 18px;
+  margin-top: 6px;
+  font-size: 16px;
 }
 
 .mvp-health-card strong.is-ready {
@@ -382,36 +366,34 @@ function usagePercent(count: number) {
 }
 
 .mvp-scenario-button {
-  min-height: 64px;
-  padding: 10px;
+  min-height: 56px;
+  padding: 9px;
   border: 1px solid #d8e0ea;
-  border-radius: 8px;
+  border-radius: 5px;
   background: #ffffff;
   color: #172033;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.35;
-  font-weight: 700;
+  font-weight: 650;
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .mvp-scenario-button:hover,
 .mvp-scenario-button:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 10px 20px rgb(37 99 235 / 0.1);
-  transform: translateY(-1px);
+  border-color: #9db2ce;
+  background: #f8fafc;
 }
 
 .qa-entry {
-  padding: 24px 28px;
+  padding: 18px;
 }
 
 .qa-entry__inner {
   display: grid;
   grid-template-columns: minmax(220px, 300px) 1fr;
   align-items: start;
-  gap: 24px 36px;
+  gap: 18px 28px;
 }
 
 .qa-entry__lead {
@@ -456,7 +438,7 @@ function usagePercent(count: number) {
   flex-shrink: 0;
   min-width: 116px;
   min-height: 96px;
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .qa-entry__steps {
@@ -481,9 +463,9 @@ function usagePercent(count: number) {
   justify-content: center;
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  background: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
+  border-radius: 4px;
+  background: #eef4fb;
+  color: #1f4e8c;
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;

@@ -107,62 +107,21 @@ async function run() {
 <style scoped>
 .business-page {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .page-head {
-  position: relative;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 24px 28px;
-  border-color: #d8e0ea;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: 0 14px 32px rgb(15 23 42 / 0.07);
-}
-
-.page-head::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgb(37 99 235 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(37 99 235 / 0.035) 1px, transparent 1px);
-  background-size: 32px 32px;
-  pointer-events: none;
-}
-
-.page-head::after {
-  content: "";
-  position: absolute;
-  right: 28px;
-  top: 20px;
-  width: 150px;
-  height: 64px;
-  border-top: 1px solid rgb(37 99 235 / 0.16);
-  border-right: 1px solid rgb(37 99 235 / 0.16);
-  pointer-events: none;
-}
-
-.page-head > * {
-  position: relative;
-  z-index: 1;
-}
-
-.page-head .page-title {
-  color: #111827;
-}
-
-.page-head .page-subtitle {
-  color: #667085;
+  padding: 18px 20px;
 }
 
 .page-head :deep(.el-tag) {
-  border: none;
-  background: linear-gradient(135deg, #2563eb 0%, #0f766e 100%);
-  box-shadow: 0 10px 20px rgb(37 99 235 / 0.16);
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1f4e8c;
 }
 
 .business-metrics {
@@ -198,13 +157,13 @@ async function run() {
 }
 
 .head-meta span {
-  padding: 7px 12px;
-  border: 1px solid #bfdbfe;
-  border-radius: 999px;
+  padding: 5px 9px;
+  border: 1px solid #d9e0ea;
+  border-radius: 4px;
   background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 13px;
-  font-weight: 700;
+  color: #1f4e8c;
+  font-size: 12px;
+  font-weight: 650;
 }
 
 @media (max-width: 760px) {

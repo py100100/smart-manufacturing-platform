@@ -38,6 +38,7 @@ def _build_response(orch_response) -> OrchestrationWithClosure:
         next_actions=orch_response.next_actions,
         agent_chain=[s.model_dump() for s in orch_response.agent_chain],
         node_feedback=[n.model_dump() for n in orch_response.node_feedback],
+        token_usage=orch_response.token_usage,
         closure=closure,
     )
 

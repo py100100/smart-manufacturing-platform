@@ -199,6 +199,12 @@
             <span class="muted">识别场景：</span>
             <span class="muted">{{ result.detected_scenes.join(' / ') }}</span>
           </div>
+          <div class="trace-info">
+            <span class="muted">Token 消耗：</span>
+            <span class="muted mono">
+              总计 {{ tokenUsage.total_tokens }}，输入 {{ tokenUsage.prompt_tokens }}，输出 {{ tokenUsage.completion_tokens }}，请求 {{ tokenUsage.request_count }} 次
+            </span>
+          </div>
         </el-collapse-item>
       </el-collapse>
     </el-card>
@@ -610,6 +616,13 @@ const methodFlowNodes = computed(() => {
 // 原有逻辑（不变）
 // ═══════════════════════════════════════════════════════════════
 
+const tokenUsage = computed(() => props.result?.token_usage ?? {
+  prompt_tokens: 0,
+  completion_tokens: 0,
+  total_tokens: 0,
+  request_count: 0,
+})
+
 const DECISION_CN_MAP: Record<string, string> = {
   quality_risk_detected: '检测到质量风险',
   schedule_risk_detected: '存在排产风险',
@@ -655,8 +668,8 @@ const decisionLabel = computed(() => {
 <style scoped>
 /* ═══════════════ 智能分析结论卡片 ═══════════════ */
 .conclusion-card {
-  margin-bottom: 16px;
-  border-left: 4px solid var(--el-color-primary);
+  margin-bottom: 14px;
+  border-left: 3px solid #1f4e8c;
   background: #ffffff;
 }
 
@@ -664,21 +677,21 @@ const decisionLabel = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e6ebf2;
 }
 
 .conclusion-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  color: #172033;
+  color: #111827;
 }
 
 .header-agent {
   font-size: 12px;
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
+  color: #1f4e8c;
+  background: #eef4fb;
   padding: 2px 10px;
   border-radius: 4px;
 }
@@ -690,10 +703,10 @@ const decisionLabel = computed(() => {
 
 /* 段落标题 */
 .block-section-title {
-  margin: 20px 0 12px;
+  margin: 18px 0 10px;
   padding-left: 10px;
-  border-left: 3px solid var(--el-color-primary);
-  font-size: 16px;
+  border-left: 3px solid #1f4e8c;
+  font-size: 15px;
   font-weight: 700;
   color: #172033;
   line-height: 1.4;
@@ -705,20 +718,20 @@ const decisionLabel = computed(() => {
 
 /* 步骤块 */
 .block-step {
-  margin-bottom: 16px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
+  margin-bottom: 14px;
+  border: 1px solid #e1e7ef;
+  border-radius: 5px;
   overflow: hidden;
-  background: #fafbfc;
+  background: #fbfcfe;
 }
 
 .block-step__header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  background: var(--el-color-primary-light-9);
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  padding: 9px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e1e7ef;
 }
 
 .block-step__num {
@@ -727,8 +740,8 @@ const decisionLabel = computed(() => {
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  background: var(--el-color-primary);
+  border-radius: 4px;
+  background: #1f4e8c;
   color: #ffffff;
   font-size: 12px;
   font-weight: 700;
@@ -819,7 +832,8 @@ const decisionLabel = computed(() => {
   margin: 0;
   padding: 10px 14px;
   background: #f8fafc;
-  border-radius: 6px;
+  border: 1px solid #e1e7ef;
+  border-radius: 5px;
 }
 
 .decision-label {
@@ -831,7 +845,7 @@ const decisionLabel = computed(() => {
 
 /* ═══════════════ 分析路径图 ═══════════════ */
 .flow-card {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .method-flow {
@@ -849,18 +863,16 @@ const decisionLabel = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 16px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 12px 14px;
+  border: 1px solid #d9e0ea;
+  border-radius: 5px;
+  background: #ffffff;
   min-width: 132px;
-  min-height: 82px;
-  box-shadow: 0 8px 18px rgb(15 23 42 / 0.05);
-  transition: border-color 0.2s;
+  min-height: 76px;
 }
 
 .flow-node:hover {
-  border-color: var(--el-color-primary);
+  border-color: #9db2ce;
 }
 
 .flow-node__step {
@@ -869,8 +881,8 @@ const decisionLabel = computed(() => {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
-  background: var(--el-color-primary);
+  border-radius: 4px;
+  background: #1f4e8c;
   color: #ffffff;
   font-size: 11px;
   font-weight: 700;
@@ -901,7 +913,7 @@ const decisionLabel = computed(() => {
 
 .flow-arrow__head {
   font-size: 12px;
-  color: var(--el-color-primary);
+  color: #1f4e8c;
   line-height: 1;
   transform: rotate(-90deg);
 }
@@ -935,7 +947,7 @@ const decisionLabel = computed(() => {
 /* 建议处理步骤（结论区前 3 条） */
 .report-actions {
   padding-top: 16px;
-  border-top: 1px solid var(--el-border-color-lighter);
+  border-top: 1px solid #e6ebf2;
 }
 
 .report-actions__title {
@@ -965,7 +977,7 @@ const decisionLabel = computed(() => {
 
 /* ═══════════════ 分析详情面板 ═══════════════ */
 .detail-panel {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .result-block {
@@ -1012,10 +1024,10 @@ const decisionLabel = computed(() => {
 
 .trace-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--el-color-primary);
+  background: #1f4e8c;
   margin-top: 5px;
   flex-shrink: 0;
 }
@@ -1084,7 +1096,7 @@ const decisionLabel = computed(() => {
   min-height: 54px;
   padding: 14px 16px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 5px;
   background: #f8fafc;
 }
 
@@ -1094,9 +1106,9 @@ const decisionLabel = computed(() => {
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  background: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
+  border-radius: 4px;
+  background: #eef4fb;
+  color: #1f4e8c;
   font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;

@@ -14,6 +14,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from app.schemas.agent import TokenUsage
+
 
 def _now() -> datetime:
     return datetime.now(tz=timezone.utc)
@@ -124,5 +126,6 @@ class OrchestrationWithClosure(BaseModel):
     next_actions: list[str] = Field(default_factory=list)
     agent_chain: list = Field(default_factory=list)
     node_feedback: list = Field(default_factory=list)
+    token_usage: TokenUsage = Field(default_factory=TokenUsage)
     # 业务闭环
     closure: BusinessClosure = Field(default_factory=BusinessClosure)

@@ -24,6 +24,13 @@ class NodeFeedback(BaseModel):
     completed_at: datetime | None = None
 
 
+class TokenUsage(BaseModel):
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    request_count: int = 0
+
+
 class AgentTaskRequest(BaseModel):
     request_text: str = Field(min_length=3, max_length=2000)
     agent_name: AgentName | None = None
@@ -42,6 +49,7 @@ class AgentTaskResponse(BaseModel):
     next_actions: list[str]
     node_feedback: list[NodeFeedback]
     model_used: str | None = None
+    token_usage: TokenUsage = Field(default_factory=TokenUsage)
     memory_updated: bool = False
 
 
@@ -84,6 +92,7 @@ class OrchestrationResponse(BaseModel):
         default_factory=list, description="聚合所有智能体的节点反馈"
     )
     model_used: str | None = None
+    token_usage: TokenUsage = Field(default_factory=TokenUsage)
     memory_updated: bool = False
 
 

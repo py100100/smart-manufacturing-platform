@@ -1,53 +1,74 @@
 <template>
   <div class="auth-page">
-    <section class="auth-hero">
-      <div>
-        <div class="eyebrow">Manufacturing Operations Center</div>
-        <h1>智能制造服务平台</h1>
-        <p>面向生产、质量、设备、供应链与工艺团队的统一运营后台。</p>
-      </div>
-      <div class="hero-stats">
-        <span><strong>5</strong> 智能体</span>
-        <span><strong>RAG</strong> 检索</span>
-        <span><strong>4</strong> 闭环对象</span>
-      </div>
-    </section>
-
-    <section class="auth-card">
-      <div class="card-topline">
-        <span class="security-dot" />
-        <span>Enterprise Access</span>
-      </div>
-      <div class="card-title-row">
+    <aside class="auth-info">
+      <div class="brand-row">
+        <div class="brand-mark">MO</div>
         <div>
-          <div class="eyebrow">Secure Sign In</div>
-          <h2>账号登录</h2>
-          <p class="muted">请输入已授权账号完成身份验证。</p>
+          <strong>制造运营平台</strong>
+          <span>Manufacturing Operations</span>
         </div>
-        <div class="login-badge">OPS</div>
       </div>
-      <el-form class="auth-form" @submit.prevent>
-        <el-form-item label="用户名">
-          <el-input v-model="username" size="large" placeholder="输入用户名" />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input v-model="password" size="large" type="password" show-password placeholder="输入密码" />
-        </el-form-item>
-        <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
-        <el-button type="primary" size="large" class="full-btn" :loading="loading" @click="handleLogin">
-          登录
-        </el-button>
-      </el-form>
-      <div class="security-strip">
-        <span>本地演示认证</span>
-        <span>会话状态持久化</span>
-        <span>权限入口校验</span>
+
+      <div class="system-summary">
+        <h1>企业运营控制台</h1>
+        <p>面向生产、质量、设备、供应链和工艺团队的统一业务分析与闭环管理入口。</p>
       </div>
-      <div class="auth-link">
-        还没有账号？
-        <router-link to="/register">注册</router-link>
-      </div>
-    </section>
+
+      <dl class="info-list">
+        <div>
+          <dt>覆盖范围</dt>
+          <dd>五大制造业务域</dd>
+        </div>
+        <div>
+          <dt>运行模式</dt>
+          <dd>本地演示环境</dd>
+        </div>
+        <div>
+          <dt>数据能力</dt>
+          <dd>RAG / 知识图谱 / 业务闭环</dd>
+        </div>
+      </dl>
+    </aside>
+
+    <main class="auth-main">
+      <section class="auth-card">
+        <div class="card-heading">
+          <span class="eyebrow">Enterprise Access</span>
+          <h2>账号登录</h2>
+          <p>请输入已授权账号进入制造运营控制台。</p>
+        </div>
+
+        <el-form class="auth-form" label-position="top" @submit.prevent>
+          <el-form-item label="用户名">
+            <el-input v-model="username" size="large" placeholder="请输入用户名" />
+          </el-form-item>
+          <el-form-item label="密码">
+            <el-input
+              v-model="password"
+              size="large"
+              type="password"
+              show-password
+              placeholder="请输入密码"
+            />
+          </el-form-item>
+          <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
+          <el-button type="primary" size="large" class="full-btn" :loading="loading" @click="handleLogin">
+            登录
+          </el-button>
+        </el-form>
+
+        <div class="auth-meta">
+          <span>本地认证</span>
+          <span>会话保持</span>
+          <span>操作留痕</span>
+        </div>
+
+        <div class="auth-link">
+          还没有账号？
+          <router-link to="/register">注册</router-link>
+        </div>
+      </section>
+    </main>
   </div>
 </template>
 
@@ -80,219 +101,163 @@ function handleLogin() {
 .auth-page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(420px, 1.1fr) minmax(380px, 0.9fr);
-  align-items: stretch;
-  background:
-    radial-gradient(circle at 18% 18%, rgb(37 99 235 / 0.14), transparent 330px),
-    linear-gradient(135deg, #eef3f8 0%, #f8fafc 52%, #e8eef6 100%);
+  grid-template-columns: minmax(320px, 420px) minmax(420px, 1fr);
+  background: #f3f5f8;
 }
 
-.auth-hero {
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgb(17 24 39 / 0.96), rgb(23 32 51 / 0.98)),
-    repeating-linear-gradient(90deg, transparent 0, transparent 48px, rgb(255 255 255 / 0.04) 49px);
-  color: #fff;
-  padding: 56px;
+.auth-info {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-}
-
-.auth-hero::after {
-  content: "";
-  position: absolute;
-  right: -120px;
-  bottom: -130px;
-  width: 360px;
-  height: 360px;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 42px rgb(255 255 255 / 0.03);
-}
-
-.auth-hero h1 {
-  margin: 18px 0 12px;
-  font-size: 38px;
-  line-height: 1.2;
-}
-
-.auth-hero p {
-  max-width: 520px;
-  color: #cbd5e1;
-  line-height: 1.8;
-}
-
-.eyebrow {
-  color: #8ea0bb;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.hero-stats {
-  display: flex;
-  gap: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-stats span {
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 8px;
-  padding: 10px 14px;
-  background: rgb(255 255 255 / 0.06);
-  color: #d6deeb;
-}
-
-.hero-stats strong {
+  padding: 40px;
+  background: #172033;
   color: #ffffff;
 }
 
-.auth-card {
-  position: relative;
-  overflow: hidden;
-  align-self: center;
-  width: min(440px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 36px;
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.98) 0%, rgb(248 250 252 / 0.98) 100%);
-  border: 1px solid #d8e0ea;
-  border-radius: 8px;
-  box-shadow: 0 24px 60px rgb(15 23 42 / 0.12);
-}
-
-.auth-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: linear-gradient(90deg, #2563eb 0%, #0f766e 55%, #94a3b8 100%);
-}
-
-.auth-card::after {
-  content: "";
-  position: absolute;
-  right: -42px;
-  top: -42px;
-  width: 130px;
-  height: 130px;
-  border: 1px solid rgb(37 99 235 / 0.12);
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 24px rgb(15 118 110 / 0.04);
-  pointer-events: none;
-}
-
-.card-topline {
-  display: inline-flex;
+.brand-row {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 9px;
-  border: 1px solid #d8e0ea;
-  border-radius: 6px;
-  background: #f8fafc;
-  color: #475467;
+  gap: 12px;
+}
+
+.brand-row strong,
+.brand-row span {
+  display: block;
+}
+
+.brand-row strong {
+  font-size: 16px;
+}
+
+.brand-row span {
+  margin-top: 3px;
+  color: #aeb9c9;
   font-size: 12px;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.system-summary h1 {
+  margin: 0 0 12px;
+  font-size: 30px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.system-summary p {
+  max-width: 320px;
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.75;
+  font-size: 14px;
+}
+
+.info-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.info-list div {
+  padding: 12px 0;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.info-list dt {
+  color: #9fb0c5;
+  font-size: 12px;
+}
+
+.info-list dd {
+  margin: 5px 0 0;
+  font-size: 14px;
   font-weight: 650;
 }
 
-.security-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 0 4px rgb(34 197 94 / 0.12);
-}
-
-.card-title-row {
-  position: relative;
-  z-index: 1;
+.auth-main {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
 }
 
-.login-badge {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: #172033;
-  color: #ffffff;
+.auth-card {
+  width: min(420px, 100%);
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #d9e0ea;
+  border-radius: 6px;
+  box-shadow: 0 12px 28px rgb(16 24 40 / 0.08);
+}
+
+.card-heading {
+  margin-bottom: 22px;
+}
+
+.eyebrow {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.card-heading h2 {
+  margin: 8px 0 6px;
+  color: #111827;
+  font-size: 24px;
+}
+
+.card-heading p {
+  margin: 0;
+  color: #6b7280;
   font-size: 13px;
-  font-weight: 800;
-  box-shadow: 0 14px 28px rgb(15 23 42 / 0.18);
-}
-
-.auth-card h2 {
-  margin: 10px 0 4px;
-  color: #172033;
-}
-
-.auth-form {
-  position: relative;
-  z-index: 1;
-  margin-top: 24px;
 }
 
 .full-btn {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 10px;
   height: 42px;
 }
 
-.security-strip {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.auth-meta {
+  display: flex;
+  justify-content: space-between;
   gap: 8px;
   margin-top: 18px;
-}
-
-.security-strip span {
-  min-height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  border: 1px solid #e1e7ef;
-  border-radius: 6px;
-  background: #fbfdff;
-  color: #667085;
-  font-size: 11px;
-  text-align: center;
+  padding-top: 14px;
+  border-top: 1px solid #edf1f7;
+  color: #7b8494;
+  font-size: 12px;
 }
 
 .auth-link {
-  position: relative;
-  z-index: 1;
   margin-top: 18px;
   text-align: center;
-  color: #667085;
+  color: #6b7280;
+  font-size: 13px;
 }
 
 .auth-link a {
-  color: #2563eb;
+  color: #1f4e8c;
+  font-weight: 650;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
   .auth-page {
     grid-template-columns: 1fr;
   }
 
-  .auth-hero {
+  .auth-info {
     display: none;
-  }
-
-  .security-strip {
-    grid-template-columns: 1fr;
   }
 }
 </style>
